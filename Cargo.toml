@@ -1,0 +1,9 @@
+[package]
+name = "iced_thread_mpsc_test"
+version = "0.1.0"
+authors = ["Duncan Freeman <dfreeman@lucidyne.com>"]
+edition = "2018"
+
+[dependencies]
+iced = "0.1.1"
+iced_futures = "0.1.2"

@@ -1,22 +1,47 @@
-use futures::channel::mpsc::Receiver;
 pub use futures::channel::mpsc::Sender;
 use futures::stream::StreamExt;
 use iced_futures::futures;
+use std::fmt::Debug;
+use std::hash::Hash;
 use std::marker::PhantomData;
+use std::time::Instant;
 
-pub fn channel<T: Send + 'static + Debug>(buf_size: usize, idx: u32) -> iced::Subscription<Message<T>> {
-    iced::Subscription::from_recipe(MpscChannel::new(buf_size, idx))
-}
-
-pub struct MpscChannel<T> {
+pub struct Mpsc<T> {
+    unique: Instant,
     buf_size: usize,
-    idx: u32,
-    _phantom: PhantomData<T>
+    _phantom: PhantomData<T>,
 }
 
-impl<T> MpscChannel<T> {
-    pub fn new(buf_size: usize, idx: u32) -> Self {
-        Self { buf_size, idx, _phantom: PhantomData }
+impl<T> Mpsc<T> {
+    pub fn new(buf_size: usize) -> Self {
+        Self {
+            unique: Instant::now(),
+            buf_size,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn sub(&self) -> iced::Subscription<Message<T>>
+    where
+        T: Debug + Send + 'static,
+    {
+        MpscSubscription::sub(self.buf_size, self.unique)
+    }
+}
+
+pub struct MpscSubscription<T, U> {
+    buf_size: usize,
+    unique: U,
+    _phantom: PhantomData<T>, // TODO: Remove this?
+}
+
+impl<T: Send + 'static + Debug, U: Hash + 'static> MpscSubscription<T, U> {
+    pub fn sub(buf_size: usize, unique: U) -> iced::Subscription<Message<T>> {
+        iced::Subscription::from_recipe(Self {
+            buf_size,
+            unique,
+            _phantom: PhantomData,
+        })
     }
 }
 
@@ -26,17 +51,16 @@ pub enum Message<T> {
     Received(T),
 }
 
-use std::fmt::Debug;
-impl<H, I, T> iced_native::subscription::Recipe<H, I> for MpscChannel<T>
+impl<H, I, T, U> iced_native::subscription::Recipe<H, I> for MpscSubscription<T, U>
 where
+    U: Hash + 'static,
     H: std::hash::Hasher,
-    T: Send + 'static + Debug,
+    T: Send + 'static,
 {
     type Output = Message<T>;
     fn hash(&self, state: &mut H) {
-        use std::hash::Hash;
         std::any::TypeId::of::<Self>().hash(state);
-        self.idx.hash(state);
+        self.unique.hash(state);
     }
 
     fn stream(

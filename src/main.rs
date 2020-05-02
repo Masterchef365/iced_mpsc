@@ -1,5 +1,6 @@
 use iced::*;
 mod mpsc;
+use mpsc::Mpsc;
 
 fn main() {
     App::run(Default::default())
@@ -9,6 +10,7 @@ struct App {
     clicky: button::State,
     n_clicks: usize,
     sender: Option<mpsc::Sender<()>>,
+    mpsc: Mpsc<()>,
 }
 
 #[derive(Debug, Clone)]
@@ -26,6 +28,7 @@ impl Application for App {
         let instance = Self {
             clicky: button::State::new(),
             sender: None,
+            mpsc: Mpsc::new(80),
             n_clicks: 0,
         };
         (instance, Command::none())
@@ -47,7 +50,15 @@ impl Application for App {
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
             Message::Mpsc(mpsc::Message::Received(_)) => self.n_clicks += 1,
-            Message::Mpsc(mpsc::Message::Sender(tx)) => self.sender = Some(tx.clone()),
+            Message::Mpsc(mpsc::Message::Sender(mut tx)) => {
+                self.sender = Some(tx.clone());
+                std::thread::spawn(move || {
+                    loop {
+                        tx.try_send(()).unwrap();
+                        std::thread::sleep_ms(1000);
+                    }
+                });
+            },
             Message::Clicky => {
                 if let Some(tx) = &mut self.sender {
                     tx.try_send(()).expect("Sender vanished!")
@@ -60,6 +71,6 @@ impl Application for App {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        mpsc::channel(512, 0).map(Message::Mpsc)
+        self.mpsc.sub().map(Message::Mpsc)
     }
 }

@@ -1,6 +1,5 @@
 use iced::*;
-mod mpsc;
-use mpsc::Mpsc;
+use iced_mpsc::Mpsc;
 
 fn main() {
     App::run(Default::default())
@@ -9,14 +8,14 @@ fn main() {
 struct App {
     clicky: button::State,
     n_clicks: usize,
-    sender: Option<mpsc::Sender<()>>,
-    mpsc: Mpsc<()>,
+    sender: Option<iced_mpsc::Sender<()>>,
+    iced_mpsc: Mpsc<()>,
 }
 
 #[derive(Debug, Clone)]
 enum Message {
     Clicky,
-    Mpsc(mpsc::Message<()>),
+    Mpsc(iced_mpsc::Message<()>),
 }
 
 impl Application for App {
@@ -28,7 +27,7 @@ impl Application for App {
         let instance = Self {
             clicky: button::State::new(),
             sender: None,
-            mpsc: Mpsc::new(80),
+            iced_mpsc: Mpsc::new(80),
             n_clicks: 0,
         };
         (instance, Command::none())
@@ -49,8 +48,8 @@ impl Application for App {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::Mpsc(mpsc::Message::Received(())) => self.n_clicks += 1,
-            Message::Mpsc(mpsc::Message::Sender(mut tx)) => {
+            Message::Mpsc(iced_mpsc::Message::Received(())) => self.n_clicks += 1,
+            Message::Mpsc(iced_mpsc::Message::Sender(mut tx)) => {
                 self.sender = Some(tx.clone());
                 std::thread::spawn(move || loop {
                     std::thread::sleep(std::time::Duration::from_secs(1));
@@ -69,6 +68,6 @@ impl Application for App {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        self.mpsc.sub().map(Message::Mpsc)
+        self.iced_mpsc.sub().map(Message::Mpsc)
     }
 }

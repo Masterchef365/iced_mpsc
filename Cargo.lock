@@ -869,6 +869,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "iced_mpsc"
+version = "0.1.0"
+dependencies = [
+ "iced",
+ "iced_futures",
+ "iced_native",
+]
+
+[[package]]
 name = "iced_native"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -888,15 +897,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb7ccec94a0b71061260f2e5c9dbaf3dcaad6bc80ba79199873b55b778d5e729"
 dependencies = [
  "iced_core",
-]
-
-[[package]]
-name = "iced_thread_mpsc_test"
-version = "0.1.0"
-dependencies = [
- "iced",
- "iced_futures",
- "iced_native",
 ]
 
 [[package]]

@@ -17,6 +17,7 @@ impl<T> Mpsc<T> {
     /// Create a new channel, with specified buffer size.
     pub fn new(buf_size: usize) -> Self {
         Self {
+            // TODO: Find a more reliably unique value
             unique: Instant::now(),
             buf_size,
             _phantom: PhantomData,

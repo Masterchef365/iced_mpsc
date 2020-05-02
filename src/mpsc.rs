@@ -6,6 +6,7 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 use std::time::Instant;
 
+/// Mpsc channel subscription manager
 pub struct Mpsc<T> {
     unique: Instant,
     buf_size: usize,
@@ -13,6 +14,7 @@ pub struct Mpsc<T> {
 }
 
 impl<T> Mpsc<T> {
+    /// Create a new channel, with specified buffer size.
     pub fn new(buf_size: usize) -> Self {
         Self {
             unique: Instant::now(),
@@ -21,6 +23,7 @@ impl<T> Mpsc<T> {
         }
     }
 
+    /// Output a subscription to this channel to allow `Message`s to be fed into the app
     pub fn sub(&self) -> iced::Subscription<Message<T>>
     where
         T: Debug + Send + 'static,
@@ -29,6 +32,16 @@ impl<T> Mpsc<T> {
     }
 }
 
+/// MPSC message carrying either received message or a sender
+#[derive(Debug, Clone)]
+pub enum Message<T> {
+    /// A new channel has been created, and this is the handle to it.
+    Sender(Sender<T>),
+    /// A value has been read from the channel.
+    Received(T),
+}
+
+/// A subscription to an MPSC channel
 pub struct MpscSubscription<T, U> {
     buf_size: usize,
     unique: U,
@@ -36,6 +49,8 @@ pub struct MpscSubscription<T, U> {
 }
 
 impl<T: Send + 'static + Debug, U: Hash + 'static> MpscSubscription<T, U> {
+    /// Create a subscription, which will only create a new channel if `unique` is unique to the
+    /// iced app it is passed to.
     pub fn sub(buf_size: usize, unique: U) -> iced::Subscription<Message<T>> {
         iced::Subscription::from_recipe(Self {
             buf_size,
@@ -45,12 +60,6 @@ impl<T: Send + 'static + Debug, U: Hash + 'static> MpscSubscription<T, U> {
     }
 }
 
-#[derive(Debug, Clone)]
-pub enum Message<T> {
-    Sender(Sender<T>),
-    Received(T),
-}
-
 impl<H, I, T, U> iced_native::subscription::Recipe<H, I> for MpscSubscription<T, U>
 where
     U: Hash + 'static,
@@ -58,8 +67,8 @@ where
     T: Send + 'static,
 {
     type Output = Message<T>;
+
     fn hash(&self, state: &mut H) {
-        std::any::TypeId::of::<Self>().hash(state);
         self.unique.hash(state);
     }
 

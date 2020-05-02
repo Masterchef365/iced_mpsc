@@ -49,16 +49,14 @@ impl Application for App {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         match message {
-            Message::Mpsc(mpsc::Message::Received(_)) => self.n_clicks += 1,
+            Message::Mpsc(mpsc::Message::Received(())) => self.n_clicks += 1,
             Message::Mpsc(mpsc::Message::Sender(mut tx)) => {
                 self.sender = Some(tx.clone());
-                std::thread::spawn(move || {
-                    loop {
-                        tx.try_send(()).unwrap();
-                        std::thread::sleep_ms(1000);
-                    }
+                std::thread::spawn(move || loop {
+                    std::thread::sleep(std::time::Duration::from_secs(1));
+                    tx.try_send(()).unwrap();
                 });
-            },
+            }
             Message::Clicky => {
                 if let Some(tx) = &mut self.sender {
                     tx.try_send(()).expect("Sender vanished!")

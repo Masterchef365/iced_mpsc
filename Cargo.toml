@@ -1,10 +1,10 @@
 [package]
 name = "iced_mpsc"
 version = "0.1.0"
-authors = ["Duncan Freeman <dfreeman@lucidyne.com>"]
+authors = ["Duncan Freeman <duncan.freeman1@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-iced = { git = "https://github.com/hecrj/iced.git", rev = "5324eb10242a7dd33f5271dc6fc9eeb09eb2cb50", features = ["canvas"] }
-iced_futures = { git = "https://github.com/hecrj/iced.git", rev = "5324eb10242a7dd33f5271dc6fc9eeb09eb2cb50" }
-iced_native = { git = "https://github.com/hecrj/iced.git", rev = "5324eb10242a7dd33f5271dc6fc9eeb09eb2cb50" }
+iced = { git = "https://github.com/hecrj/iced.git", rev = "2a46ed87538b9617ffc82ce6c01d40bba15bd5b3" }
+iced_futures = { git = "https://github.com/hecrj/iced.git", rev = "2a46ed87538b9617ffc82ce6c01d40bba15bd5b3" }
+iced_native = { git = "https://github.com/hecrj/iced.git", rev = "2a46ed87538b9617ffc82ce6c01d40bba15bd5b3" }

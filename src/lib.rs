@@ -43,16 +43,16 @@ pub enum Message<T> {
 }
 
 /// A subscription to an MPSC channel
-pub struct MpscSubscription<T, U> {
+pub struct MpscSubscription<T> {
     buf_size: usize,
-    unique: U,
+    unique: Instant,
     _phantom: PhantomData<T>, // TODO: Remove this?
 }
 
-impl<T: Send + 'static + Debug, U: Hash + 'static> MpscSubscription<T, U> {
+impl<T: Send + 'static + Debug> MpscSubscription<T> {
     /// Create a subscription, which will only create a new channel if `unique` is unique to the
     /// iced app it is passed to.
-    pub fn sub(buf_size: usize, unique: U) -> iced::Subscription<Message<T>> {
+    pub fn sub(buf_size: usize, unique: Instant) -> iced::Subscription<Message<T>> {
         iced::Subscription::from_recipe(Self {
             buf_size,
             unique,
@@ -61,9 +61,8 @@ impl<T: Send + 'static + Debug, U: Hash + 'static> MpscSubscription<T, U> {
     }
 }
 
-impl<H, I, T, U> iced_native::subscription::Recipe<H, I> for MpscSubscription<T, U>
+impl<H, I, T> iced_native::subscription::Recipe<H, I> for MpscSubscription<T>
 where
-    U: Hash + 'static,
     H: std::hash::Hasher,
     T: Send + 'static,
 {
